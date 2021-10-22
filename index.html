@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>XML TO JSON</title>
+<script type="text/javascript" src="script/xml2json.js"></script>
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+</head>
+<style type="text/css">
+
+.code {
+  position: relative;
+  max-height:500px;
+  min-width:28em;
+  margin:1em 5px 1.5em 2em;
+  background:#fbfbfe;
+  border:1px solid #bbb;
+  font-size:16px;
+  padding:2px 3px 6px 3px;
+  color:#0101ff;
+  font-weight:800;
+  overflow:auto;
+  word-wrap:break-word;
+}
+#jsnstr, #host {
+  /* margin:.35em .4em 1em 2em; */
+  max-height:500px;
+  background:#ffc;
+  border:1px solid #dadada;
+  padding:.4em .5em;
+  color:#333;
+  font-weight:800;
+  overflow:auto;
+}
+#from {
+  margin:3em auto 1em auto;
+  text-align:center;
+}
+</style>
+</head>
+<body>
+  <div class="container">
+    <h4>XML TO JSON</h4>
+    <select name="" class="form-control" id="files" onchange="convertFile()">
+        <option value="file/E-PLAN PR.xml" selected>PR</option>
+        <option value="file/E-PLAN PO.xml">PO</option>
+        <option value="file/E-PLAN RI.xml">RI</option>
+    </select>
+    <pre id="jsnstr"></pre><br/>
+    <h6>NO PO : <span id="PO"></span></h6>
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">ITEM NO</th>
+          <th scope="col">ITEM DESC</th>
+          <th scope="col">QUANTITY</th>
+          <th scope="col">ITEM UNIT</th>
+          <th scope="col">PRICE</th>
+        </tr>
+      </thead>
+      <tbody id="ITEMLINE">
+       
+      </tbody>
+    </table>
+  </div>
+
+
+
+
+</body>
+<footer>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+  <script type="text/javascript">
+    function convertFile(){
+        var e = document.getElementById("files");
+        var fileUser = e.value;
+        var typeFiles = e.options[e.selectedIndex].text;
+        var jsonstr = xml2json.fromFile(fileUser, 'string');
+        document.getElementById('jsnstr').innerHTML = jsonstr;
+
+        let data = JSON.parse(jsonstr);
+        let po,date,item
+        if(typeFiles=="PR"){
+          po = data.NMEXML.TRANSACTIONS.REQUISITION.REQNO['#text']
+          date = data.NMEXML.TRANSACTIONS.REQUISITION.REQDATE['#text']
+          item = data.NMEXML.TRANSACTIONS.REQUISITION.ITEMLINE
+          item = item.map((item) => {
+            return {
+              ITEMNO : item.ITEMNO['#text'],
+              ITEMOVDESC : item.ITEMOVDESC['#text'],
+              QUANTITY : item.QUANTITY['#text'],
+              ITEMUNIT : item.ITEMUNIT['#text'],
+              UNITPRICE : 0,
+
+            }
+          })
+
+
+        }else if(typeFiles=="PO"){
+          po = data.NMEXML.TRANSACTIONS.PO.PONO['#text']
+          date = data.NMEXML.TRANSACTIONS.PO.PODATE['#text']
+          item = data.NMEXML.TRANSACTIONS.PO.ITEMLINE
+          item = item.map((item) => {
+            
+            return {
+              ITEMNO : item.ITEMNO['#text'],
+              ITEMOVDESC : item.ITEMOVDESC['#text'],
+              QUANTITY : item.QUANTITY['#text'],
+              ITEMUNIT : item.ITEMUNIT['#text'],
+              UNITPRICE : item.UNITPRICE['#text'],
+            }
+          })
+
+        }else{
+          po = data.NMEXML.TRANSACTIONS.RECIEVEITEM.INVOICENO['#text']
+          date = data.NMEXML.TRANSACTIONS.RECIEVEITEM.INVOICEDATE['#text']
+          item = data.NMEXML.TRANSACTIONS.RECIEVEITEM.ITEMLINE
+          item = item.map((item) => {
+            
+            return {
+              ITEMNO : item.ITEMNO['#text'],
+              ITEMOVDESC : item.ITEMOVDESC['#text'],
+              QUANTITY : item.QUANTITY['#text'],
+              ITEMUNIT : item.ITEMUNIT['#text'],
+              UNITPRICE : 0,
+            }
+          })
+
+        }
+
+
+      document.getElementById("PO").innerHTML = po
+      document.getElementById("ITEMLINE").innerHTML = ''
+      let tbody = item.map((item)=>{
+          let dataTbody = `<tr>
+                          <td scope="row">${item.ITEMNO}</td>
+                          <td>${item.ITEMOVDESC}</td>
+                          <td>${item.QUANTITY}</td>
+                          <td>${item.ITEMUNIT}</td>
+                          <td>${item.UNITPRICE}</td>
+                      </tr>`
+                      return dataTbody
+      })
+
+      let app = document.querySelector('#ITEMLINE');
+      for (const data of tbody) {
+        app.insertAdjacentHTML( 'beforeend', data );
+      }
+      // console.log(tbody )
+      // app.append(...tbody);
+      
+        
+    }
+    convertFile()
+</script>
+</footer>
+</html>
