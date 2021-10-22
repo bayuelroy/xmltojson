@@ -55,6 +55,7 @@
     </select>
     <pre id="jsnstr"></pre><br/>
     <h6>NO PO : <span id="PO"></span></h6>
+     <h6>DATE : <span id="DATE"></span></h6>
     <table class="table">
       <thead>
         <tr>
@@ -137,6 +138,7 @@
 
 
       document.getElementById("PO").innerHTML = po
+      document.getElementById("DATE").innerHTML = date
       document.getElementById("ITEMLINE").innerHTML = ''
       let tbody = item.map((item)=>{
           let dataTbody = `<tr>
